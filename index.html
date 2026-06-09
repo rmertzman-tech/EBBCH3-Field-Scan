@@ -1,502 +1,859 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UCP Ethics Simulation - Spring 2026</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-               line-height: 1.6; color: #333; background: #f5f5f5; padding: 20px; }
-        
-        .container { max-width: 1200px; margin: 0 auto; }
-        header { background: #2c3e50; color: white; padding: 30px; 
-                border-radius: 8px; margin-bottom: 30px; text-align: center; position: relative; }
-        header h1 { font-size: 2em; margin-bottom: 5px; }
-        
-        .help-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .help-btn:hover { background: #2980b9; }
-        
-        .help-panel {
-            display: none;
-            background: #fff;
-            border: 2px solid #3498db;
-            border-radius: 8px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .help-panel.visible { display: block; }
-        .help-panel h3 { color: #2c3e50; margin-bottom: 15px; }
-        .help-panel .atcf-help {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-        }
-        .help-item {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 6px;
-            border-left: 4px solid #3498db;
-        }
-        .help-item h4 { color: #2c3e50; margin-bottom: 8px; }
-        .help-item .measurement { 
-            background: #e3f2fd; 
-            padding: 8px; 
-            border-radius: 4px; 
-            margin-top: 8px;
-            font-size: 0.9em;
-        }
-        
-        .section { background: white; padding: 25px; border-radius: 8px; 
-                  margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .section h2 { color: #2c3e50; margin-bottom: 15px; font-size: 1.5em; 
-                     border-bottom: 2px solid #3498db; padding-bottom: 8px; }
-        
-        .scenario-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-        .scenario-card { border: 2px solid #e0e0e0; padding: 15px; border-radius: 6px; 
-                        cursor: pointer; transition: all 0.3s; }
-        .scenario-card:hover { border-color: #3498db; box-shadow: 0 4px 8px rgba(52,152,219,0.2); }
-        .scenario-card.selected { border-color: #27ae60; background: #e8f8f5; }
-        .scenario-card h3 { font-size: 1.1em; color: #2c3e50; margin-bottom: 8px; }
-        .scenario-card p { font-size: 0.9em; color: #666; }
-        
-        .scenario-detail { 
-            display: none; 
-            background: #f8f9fa; 
-            padding: 20px; 
-            border-radius: 8px; 
-            margin-top: 20px;
-            border: 2px solid #3498db;
-        }
-        .scenario-detail.visible { display: block; }
-        .scenario-detail h3 { color: #2c3e50; margin-bottom: 15px; font-size: 1.3em; }
-        .scenario-detail .context { 
-            background: white; 
-            padding: 15px; 
-            border-radius: 6px; 
-            margin-bottom: 15px;
-            line-height: 1.8;
-        }
-        .scenario-detail .question {
-            background: #fff3cd;
-            padding: 15px;
-            border-radius: 6px;
-            border-left: 4px solid #ffc107;
-            margin-bottom: 15px;
-            font-weight: 500;
-        }
-        .scenario-detail .atcf-display {
-            background: white;
-            padding: 15px;
-            border-radius: 6px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 10px;
-        }
-        .atcf-item {
-            text-align: center;
-            padding: 10px;
-            background: #e3f2fd;
-            border-radius: 6px;
-            position: relative;
-            cursor: help;
-        }
-        .atcf-item:hover { background: #bbdefb; }
-        .atcf-item .label { font-size: 0.9em; color: #666; }
-        .atcf-item .value { font-size: 1.5em; font-weight: bold; color: #1976d2; }
-        
-        .tooltip {
-            position: relative;
-            display: inline-block;
-        }
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 300px;
-            background-color: #2c3e50;
-            color: #fff;
-            text-align: left;
-            border-radius: 6px;
-            padding: 12px;
-            position: absolute;
-            z-index: 1000;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -150px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            font-size: 0.85em;
-            line-height: 1.4;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
-        .tooltip .tooltiptext::after {
-            content: "";
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: #2c3e50 transparent transparent transparent;
-        }
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-            opacity: 1;
-        }
-        
-        .framework-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
-        .framework-card { border: 2px solid #e0e0e0; padding: 12px; border-radius: 6px; 
-                         cursor: pointer; transition: all 0.3s; }
-        .framework-card:hover { border-color: #3498db; }
-        .framework-card.selected { border-color: #27ae60; background: #e8f8f5; }
-        .framework-card h4 { font-size: 1em; color: #2c3e50; margin-bottom: 4px; }
-        
-        .atcf-sliders { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-        .slider-group label { display: block; font-weight: bold; margin-bottom: 5px; }
-        .slider-group input[type="range"] { width: 100%; }
-        .slider-group .value { margin-left: 10px; font-weight: bold; color: #3498db; }
-        
-        button { background: #3498db; color: white; border: none; padding: 12px 24px; 
-                font-size: 16px; border-radius: 6px; cursor: pointer; transition: all 0.3s; }
-        button:hover { background: #2980b9; }
-        button:disabled { background: #95a5a6; cursor: not-allowed; }
-        button.primary { background: #27ae60; font-size: 1.1em; padding: 15px 35px; }
-        button.primary:hover { background: #229954; }
-        
-        .result-card { background: #fff; border-left: 4px solid #3498db; padding: 20px; 
-                      margin-bottom: 15px; border-radius: 4px; }
-        .result-card.breakdown { border-left-color: #e74c3c; background: #ffebee; }
-        .result-card.success { border-left-color: #27ae60; background: #e8f8f5; }
-        .result-card h3 { color: #2c3e50; margin-bottom: 10px; }
-        .result-card .reasoning { color: #555; line-height: 1.8; margin: 10px 0; }
-        
-        .alert { padding: 15px; border-radius: 6px; margin-bottom: 20px; }
-        .alert.info { background: #d6eaf8; color: #1f618d; }
-        
-        #results { display: none; margin-top: 20px; }
-        #results.visible { display: block; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 3 · Field Scan Lab · Ethics Beyond Boundaries</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --teal:#1A5C52; --teal-d:#0F3830; --teal-l:#EAF3F1; --teal-m:#2A7A6E;
+  --gold:#7D5A1E; --gold-l:#FDF5E6; --gold-a:#D4A574;
+  --ink:#1C1917; --slate:#374151; --muted:#6B7280; --border:#E5E7EB; --bg:#FAFAF8;
+  --care:#4A90A4; --fair:#6B8E4E; --loyal:#D4A574; --auth:#8B7BA8; --sanct:#C17B7B;
+  --w:720px; --r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Source Serif 4',Georgia,serif;background:var(--bg);color:var(--ink);min-height:100vh;font-size:16px;line-height:1.65}
+
+/* ── HEADER ── */
+.site-header{background:var(--teal-d);padding:20px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.3)}
+.hdr-left{display:flex;flex-direction:column}
+.hdr-chapter{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.15em;color:var(--teal-m);text-transform:uppercase}
+.hdr-title{font-family:'Playfair Display',serif;font-size:1.1rem;color:#fff;font-weight:600}
+.hdr-right{display:flex;align-items:center;gap:14px}
+.track2-btn{background:transparent;border:1px solid var(--teal-m);color:var(--teal-m);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;padding:6px 12px;border-radius:20px;cursor:pointer;transition:.2s}
+.track2-btn:hover,.track2-btn.active{background:var(--teal-m);color:#fff}
+.step-badge{font-family:'DM Mono',monospace;font-size:11px;color:var(--gold-a);letter-spacing:.05em}
+
+/* ── PROGRESS ── */
+.progress-wrap{background:var(--teal-d);padding:0 28px 16px}
+.progress-bar{height:3px;background:rgba(255,255,255,.15);border-radius:2px}
+.progress-fill{height:100%;background:var(--gold-a);border-radius:2px;transition:width .5s ease}
+.step-labels{display:flex;justify-content:space-between;margin-top:6px}
+.step-dot{font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,.3);letter-spacing:.05em;cursor:pointer;transition:.2s}
+.step-dot.done{color:var(--gold-a)}
+.step-dot.active{color:#fff}
+
+/* ── MAIN CONTENT ── */
+.container{max-width:var(--w);margin:0 auto;padding:32px 20px 80px}
+
+/* ── STEP CARDS ── */
+.step-card{display:none;animation:fadeIn .3s ease}
+.step-card.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.step-header{margin-bottom:24px}
+.step-number{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.15em;color:var(--teal);text-transform:uppercase;margin-bottom:6px}
+.step-title{font-family:'Playfair Display',serif;font-size:1.7rem;color:var(--ink);font-weight:700;margin-bottom:8px;line-height:1.25}
+.step-desc{color:var(--muted);font-size:.95rem;font-style:italic;border-left:3px solid var(--teal-l);padding-left:14px;line-height:1.6}
+
+/* ── THEMATIC Q ── */
+.thematic-q{background:var(--teal);color:#fff;border-radius:var(--r);padding:20px 24px;margin-bottom:28px;font-style:italic;font-size:1rem;line-height:1.7}
+.thematic-q strong{display:block;font-family:'Playfair Display',serif;font-size:.8rem;font-style:normal;opacity:.7;margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase}
+
+/* ── PRF PILLS ── */
+.prf-grid{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+.prf-pill{padding:8px 16px;border-radius:20px;border:2px solid var(--border);cursor:pointer;font-size:.85rem;font-weight:600;transition:.2s;font-family:'DM Mono',monospace;letter-spacing:.05em}
+.prf-pill:hover{opacity:.85}
+.prf-pill.care{border-color:var(--care);color:var(--care)}
+.prf-pill.fair{border-color:var(--fair);color:var(--fair)}
+.prf-pill.loyal{border-color:var(--loyal);color:var(--gold)}
+.prf-pill.auth{border-color:var(--auth);color:var(--auth)}
+.prf-pill.sanct{border-color:var(--sanct);color:var(--sanct)}
+.prf-pill.selected.care{background:var(--care);color:#fff}
+.prf-pill.selected.fair{background:var(--fair);color:#fff}
+.prf-pill.selected.loyal{background:var(--loyal);color:#fff}
+.prf-pill.selected.auth{background:var(--auth);color:#fff}
+.prf-pill.selected.sanct{background:var(--sanct);color:#fff}
+.prf-row{margin-bottom:16px}
+.prf-label{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+
+/* ── FIELD CARDS ── */
+.fields-grid{display:grid;gap:14px}
+.field-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;transition:.2s}
+.field-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.07)}
+.field-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.field-name{font-family:'Playfair Display',serif;font-weight:600;font-size:1rem;color:var(--ink)}
+.field-strength-num{font-family:'DM Mono',monospace;font-size:1.4rem;font-weight:500;color:var(--teal);min-width:28px;text-align:right}
+.strength-slider{width:100%;height:6px;border-radius:3px;outline:none;cursor:pointer;appearance:none;background:linear-gradient(to right,var(--teal) 0%,var(--teal) var(--pct,50%),var(--border) var(--pct,50%),var(--border) 100%);margin-bottom:12px}
+.strength-slider::-webkit-slider-thumb{appearance:none;width:18px;height:18px;border-radius:50%;background:var(--teal);border:3px solid #fff;box-shadow:0 1px 6px rgba(0,0,0,.2);cursor:pointer}
+.strength-label{display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:10px;letter-spacing:.05em}
+.attractor-wrap{position:relative}
+.attractor-input{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-family:'Source Serif 4',serif;font-size:.9rem;color:var(--ink);background:var(--bg)}
+.attractor-input:focus{outline:none;border-color:var(--teal)}
+.attractor-hint{font-size:.78rem;color:var(--muted);margin-top:4px;font-style:italic}
+
+/* ── FIELD VIZ ── */
+.field-viz{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:20px}
+.viz-title{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:14px}
+.viz-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.viz-label{font-size:.82rem;color:var(--slate);min-width:120px}
+.viz-bar-wrap{flex:1;height:10px;background:var(--teal-l);border-radius:5px;overflow:hidden}
+.viz-bar{height:100%;background:var(--teal);border-radius:5px;transition:width .5s ease}
+.viz-num{font-family:'DM Mono',monospace;font-size:.8rem;color:var(--teal);min-width:20px}
+
+/* ── INTERFERENCE ── */
+.interference-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:14px}
+.int-type{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.int-badge{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;padding:4px 10px;border-radius:12px;text-transform:uppercase}
+.badge-construct{background:#EAF3E8;color:#4A7A40}
+.badge-destruct{background:#FDE8E8;color:#9B4040}
+.pair-selects{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.pair-select{padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-family:'Source Serif 4',serif;font-size:.9rem;background:var(--bg);color:var(--ink);cursor:pointer;flex:1;min-width:140px}
+.pair-select:focus{outline:none;border-color:var(--teal)}
+.pair-arrow{color:var(--muted);font-size:1.2rem}
+
+/* ── SUPPRESSION GAP ── */
+.gap-display{background:var(--teal);color:#fff;border-radius:var(--r);padding:24px;margin:20px 0;text-align:center}
+.gap-number{font-family:'Playfair Display',serif;font-size:4rem;font-weight:700;line-height:1}
+.gap-label{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.15em;opacity:.75;text-transform:uppercase;margin-top:4px}
+.gap-bar-wrap{background:rgba(255,255,255,.2);border-radius:6px;height:12px;margin-top:16px;overflow:hidden}
+.gap-bar-potential{height:100%;background:#fff;border-radius:6px;transition:width .5s ease}
+.gap-bar-actual{height:100%;background:var(--gold-a);border-radius:6px;margin-top:-12px;transition:width .5s ease}
+.gap-legend{display:flex;gap:16px;justify-content:center;margin-top:8px}
+.gap-legend-item{display:flex;align-items:center;gap:6px;font-size:.78rem;opacity:.8;font-family:'DM Mono',monospace}
+.leg-dot{width:10px;height:10px;border-radius:50%}
+
+/* ── DARK COHERENCE ── */
+.dc-checks{display:flex;flex-direction:column;gap:12px;margin:16px 0}
+.dc-item{display:flex;align-items:flex-start;gap:12px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:14px}
+.dc-item:has(input:checked){border-color:#C17B7B;background:#FDE8E8}
+.dc-checkbox{width:18px;height:18px;border-radius:4px;accent-color:var(--sanct);cursor:pointer;flex-shrink:0;margin-top:2px}
+.dc-text{font-size:.9rem;color:var(--slate);line-height:1.5}
+.dc-risk{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:8px;margin-top:4px;transition:.3s}
+.dc-risk.low{background:#EAF3E8;color:#3A6B30}
+.dc-risk.mod{background:#FDF5E6;color:#7D5A1E}
+.dc-risk.high{background:#FDE8E8;color:#8B3030}
+.dc-risk-label{font-family:'DM Mono',monospace;font-size:.8rem;letter-spacing:.08em;font-weight:500}
+
+/* ── INPUTS ── */
+.field-group{margin-bottom:18px}
+.field-label{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:6px;display:block}
+input[type=text],textarea,select{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-family:'Source Serif 4',serif;font-size:.95rem;color:var(--ink);background:#fff;transition:.2s}
+input[type=text]:focus,textarea:focus,select:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-l)}
+textarea{resize:vertical;min-height:80px;line-height:1.55}
+
+/* ── BRIDGE ── */
+.bridge-prompt{font-family:'Playfair Display',serif;font-style:italic;color:var(--teal);font-size:.95rem;margin-bottom:6px;padding:10px 14px;background:var(--teal-l);border-radius:6px 6px 0 0;border:1px solid #C5DCD8}
+.bridge-input{border-radius:0 0 8px 8px;border-top:none;margin-top:-1px}
+
+/* ── AI REFLECTION ── */
+.reflection-trigger{width:100%;padding:16px;background:var(--teal);color:#fff;border:none;border-radius:var(--r);font-family:'Playfair Display',serif;font-size:1.1rem;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px}
+.reflection-trigger:hover{background:var(--teal-m)}
+.reflection-trigger:disabled{opacity:.6;cursor:not-allowed}
+.reflection-trigger .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+.reflection-trigger.loading .spinner{display:block}
+.reflection-box{background:#fff;border:1px solid var(--teal-l);border-radius:var(--r);padding:24px;margin-top:16px;display:none}
+.reflection-box.visible{display:block;animation:fadeIn .3s ease}
+.reflection-tag{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;color:var(--teal);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.reflection-tag::before{content:'';width:6px;height:6px;background:var(--teal);border-radius:50%;display:inline-block}
+.reflection-text{font-size:.95rem;line-height:1.75;color:var(--slate)}
+.followup-wrap{margin-top:20px;border-top:1px solid var(--border);padding-top:16px}
+.followup-label{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+.followup-row{display:flex;gap:8px}
+.followup-input{flex:1;padding:9px 14px;border:1px solid var(--border);border-radius:8px;font-family:'Source Serif 4',serif;font-size:.9rem}
+.followup-send{padding:9px 18px;background:var(--teal-l);color:var(--teal);border:1px solid var(--teal);border-radius:8px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;cursor:pointer;transition:.2s;white-space:nowrap}
+.followup-send:hover{background:var(--teal);color:#fff}
+.followup-response{background:var(--gold-l);border-left:3px solid var(--gold-a);padding:14px;border-radius:0 8px 8px 0;margin-top:12px;font-size:.9rem;line-height:1.7;color:var(--slate);display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── NAV BUTTONS ── */
+.step-nav{display:flex;gap:12px;margin-top:32px;justify-content:flex-end}
+.btn-back{padding:12px 24px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'DM Mono',monospace;font-size:.8rem;letter-spacing:.08em;cursor:pointer;transition:.2s}
+.btn-back:hover{border-color:var(--teal);color:var(--teal)}
+.btn-next{padding:12px 28px;background:var(--teal);border:none;border-radius:8px;color:#fff;font-family:'DM Mono',monospace;font-size:.85rem;letter-spacing:.1em;cursor:pointer;transition:.2s;text-transform:uppercase}
+.btn-next:hover{background:var(--teal-m)}
+
+/* ── EXPORT ── */
+.export-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+.export-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:20px;text-align:center;cursor:pointer;transition:.2s}
+.export-card:hover{border-color:var(--teal);box-shadow:0 2px 12px rgba(26,92,82,.1)}
+.export-icon{font-size:2rem;margin-bottom:10px}
+.export-title{font-family:'Playfair Display',serif;font-weight:600;font-size:1rem;margin-bottom:4px}
+.export-desc{font-size:.8rem;color:var(--muted)}
+.completion-msg{background:var(--teal);color:#fff;border-radius:var(--r);padding:24px;text-align:center;margin-bottom:20px}
+.completion-msg h2{font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:8px}
+.completion-msg p{opacity:.85;font-size:.9rem}
+
+/* ── PRINT MODE ── */
+@media print{
+  .site-header,.progress-wrap,.step-nav,.hdr-right,.reflection-trigger,.followup-wrap,.export-grid,.btn-back,.btn-next{display:none!important}
+  .step-card{display:block!important}
+  .container{padding:0}
+  body{background:#fff;font-size:14px}
+  .field-card,.interference-card,.dc-item,.reflection-box{break-inside:avoid}
+  input,textarea,select{border:1px solid #ccc!important;background:#fff!important}
+}
+.print-only{display:none}
+@media print{.print-only{display:block}}
+.no-print{display:block}
+@media print{.no-print{display:none}}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px){
+  .export-grid{grid-template-columns:1fr}
+  .site-header{padding:14px 16px}
+  .hdr-title{font-size:.95rem}
+  .container{padding:20px 14px 60px}
+  .pair-selects{flex-direction:column}
+}
+</style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🧠 UCP Ethics Simulation Platform</h1>
-            <p>Saint Petersburg College | Spring 2026 | Compare Ethical Frameworks</p>
-            <button class="help-btn" onclick="toggleHelp()">ℹ️ How ATCF is Measured</button>
-        </header>
 
-        <div id="helpPanel" class="help-panel">
-            <h3>📊 ATCF Measurement: From Theory to Evidence</h3>
-            <p>Each ATCF component is measured using validated biomarkers and behavioral assessments.</p>
-            
-            <div class="atcf-help">
-                <div class="help-item">
-                    <h4>A' (Autobiographical)</h4>
-                    <p><strong>What:</strong> Coherent sense of identity over time</p>
-                    <div class="measurement">
-                        <strong>Measured via:</strong> Life Story Interview, self-concept clarity scale, narrative coherence
-                    </div>
-                    <p style="font-size:0.85em;color:#666;margin-top:8px;"><em>Evidence: McAdams (2001), Chandler et al. (2003)</em></p>
-                </div>
+<!-- HEADER -->
+<header class="site-header">
+  <div class="hdr-left">
+    <span class="hdr-chapter">Ethics Beyond Boundaries · Chapter 3</span>
+    <span class="hdr-title">The Fields You're In — Field Scan Lab</span>
+  </div>
+  <div class="hdr-right">
+    <button class="track2-btn" id="track2Btn" onclick="toggleTrack2()">Track 2 / Print</button>
+    <span class="step-badge" id="stepBadge">Step 1 of 7</span>
+  </div>
+</header>
 
-                <div class="help-item">
-                    <h4>T' (Thermodynamic)</h4>
-                    <p><strong>What:</strong> Material security, physiological stress</p>
-                    <div class="measurement">
-                        <strong>Measured via:</strong> Cortisol levels, allostatic load, financial strain, sleep quality
-                    </div>
-                    <p style="font-size:0.85em;color:#666;margin-top:8px;"><em>Evidence: Sapolsky (2017), McEwen (2007), Evans & Schamberg (2009)</em></p>
-                </div>
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:14%"></div></div>
+  <div class="step-labels" id="stepLabels">
+    <span class="step-dot active" onclick="goStep(0)">Context</span>
+    <span class="step-dot" onclick="goStep(1)">Fields</span>
+    <span class="step-dot" onclick="goStep(2)">Interference</span>
+    <span class="step-dot" onclick="goStep(3)">Suppression</span>
+    <span class="step-dot" onclick="goStep(4)">BioBond</span>
+    <span class="step-dot" onclick="goStep(5)">Reflection</span>
+    <span class="step-dot" onclick="goStep(6)">Export</span>
+  </div>
+</div>
 
-                <div class="help-item">
-                    <h4>C' (Coherent Future)</h4>
-                    <p><strong>What:</strong> Ability to plan for future states</p>
-                    <div class="measurement">
-                        <strong>Measured via:</strong> Future Consequences scale, time perspective, delay discounting
-                    </div>
-                    <p style="font-size:0.85em;color:#666;margin-top:8px;"><em>Evidence: Mullainathan & Shafir (2013), Shah et al. (2012)</em></p>
-                </div>
+<!-- MAIN -->
+<div class="container">
 
-                <div class="help-item">
-                    <h4>F' (Free Will)</h4>
-                    <p><strong>What:</strong> Override impulses, resist pressure</p>
-                    <div class="measurement">
-                        <strong>Measured via:</strong> Stroop test, ego depletion, executive function
-                    </div>
-                    <p style="font-size:0.85em;color:#666;margin-top:8px;"><em>Evidence: Baumeister et al. (1998), Vaughan (1996)</em></p>
-                </div>
-            </div>
-
-            <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 6px;">
-                <strong>⚠️ Critical:</strong> ATCF values in scenarios are based on empirical studies showing measured impairment. Not arbitrary!
-            </div>
-        </div>
-
-        <div class="section">
-            <h2>Step 1: Choose an Ethical Scenario</h2>
-            <div class="alert info">
-                <strong>Hover over ATCF values</strong> to see how they're measured.
-            </div>
-            <div id="scenarioGrid" class="scenario-grid"></div>
-            
-            <div id="scenarioDetail" class="scenario-detail"></div>
-        </div>
-
-        <div class="section">
-            <h2>Step 2: Select Frameworks to Compare (Choose 2-4)</h2>
-            <div id="frameworkGrid" class="framework-grid"></div>
-        </div>
-
-        <div class="section">
-            <h2>Step 3: Adjust ATCF State (Optional)</h2>
-            <div class="atcf-sliders">
-                <div class="slider-group">
-                    <label>A' (Autobiographical): <span class="value" id="a-value">1.0</span></label>
-                    <input type="range" id="a-slider" min="0" max="100" value="100">
-                </div>
-                <div class="slider-group">
-                    <label>T' (Thermodynamic): <span class="value" id="t-value">1.0</span></label>
-                    <input type="range" id="t-slider" min="0" max="100" value="100">
-                </div>
-                <div class="slider-group">
-                    <label>C' (Coherent Future): <span class="value" id="c-value">1.0</span></label>
-                    <input type="range" id="c-slider" min="0" max="100" value="100">
-                </div>
-                <div class="slider-group">
-                    <label>F' (Free Will): <span class="value" id="f-value">1.0</span></label>
-                    <input type="range" id="f-slider" min="0" max="100" value="100">
-                </div>
-            </div>
-            <p style="margin-top: 10px;">
-                <label><input type="checkbox" id="use-scenario-atcf" checked> Use scenario's empirically-based ATCF</label>
-            </p>
-        </div>
-
-        <div class="section" style="text-align: center;">
-            <button id="runSimulation" class="primary" disabled>Run Simulation</button>
-        </div>
-
-        <div id="results"></div>
+<!-- ── STEP 0: CONTEXT ── -->
+<div class="step-card active" id="step0">
+  <div class="step-header">
+    <div class="step-number">Step 1 — Your Context</div>
+    <h1 class="step-title">Where you are right now</h1>
+    <p class="step-desc">Before mapping your fields, set the context. This data will be used by the AI reflection to make your analysis personally specific rather than generic.</p>
+  </div>
+  <div class="thematic-q">
+    <strong>Chapter 3 Thematic Question</strong>
+    What institutional forces are shaping my agency right now — and how do I measure them?
+  </div>
+  <div class="field-group">
+    <label class="field-label">Your name (optional — for your export)</label>
+    <input type="text" id="studentName" placeholder="First name or initials…">
+  </div>
+  <div class="prf-row">
+    <div class="prf-label">Your dominant moral foundation (from Chapter 2 / PRF-22)</div>
+    <div class="prf-grid" id="prf1Grid">
+      <div class="prf-pill care" onclick="selectPRF(this,'prf1','Care')">Care</div>
+      <div class="prf-pill fair" onclick="selectPRF(this,'prf1','Fairness')">Fairness</div>
+      <div class="prf-pill loyal" onclick="selectPRF(this,'prf1','Loyalty')">Loyalty</div>
+      <div class="prf-pill auth" onclick="selectPRF(this,'prf1','Authority')">Authority</div>
+      <div class="prf-pill sanct" onclick="selectPRF(this,'prf1','Sanctity')">Sanctity</div>
+      <div class="prf-pill" style="border-color:var(--muted);color:var(--muted)" onclick="selectPRF(this,'prf1','Unknown')">Not yet completed</div>
     </div>
+  </div>
+  <div class="prf-row">
+    <div class="prf-label">Your secondary moral foundation</div>
+    <div class="prf-grid" id="prf2Grid">
+      <div class="prf-pill care" onclick="selectPRF(this,'prf2','Care')">Care</div>
+      <div class="prf-pill fair" onclick="selectPRF(this,'prf2','Fairness')">Fairness</div>
+      <div class="prf-pill loyal" onclick="selectPRF(this,'prf2','Loyalty')">Loyalty</div>
+      <div class="prf-pill auth" onclick="selectPRF(this,'prf2','Authority')">Authority</div>
+      <div class="prf-pill sanct" onclick="selectPRF(this,'prf2','Sanctity')">Sanctity</div>
+    </div>
+  </div>
+  <div class="field-group">
+    <label class="field-label">One sentence about your current semester situation</label>
+    <textarea id="situationText" rows="2" placeholder="e.g. I am working 30 hours a week while taking 12 credits and caring for a family member…"></textarea>
+  </div>
+  <div class="step-nav">
+    <button class="btn-next" onclick="goStep(1)">Continue →</button>
+  </div>
+</div>
 
-    <script>
-        let selectedScenario = null;
-        let selectedFrameworks = new Set();
-        let scenarios = [];
-        let frameworks = [];
+<!-- ── STEP 1: SIX FIELDS ── -->
+<div class="step-card" id="step1">
+  <div class="step-header">
+    <div class="step-number">Step 2 — Your Six Life Fields</div>
+    <h1 class="step-title">Mapping field strength and direction</h1>
+    <p class="step-desc">Rate each field's current strength (1 = background, 10 = consuming most of your energy). Then name the attractor state — the direction the field is pulling you if left unexamined.</p>
+  </div>
+  <div class="fields-grid" id="fieldsGrid"></div>
+  <div class="field-viz" id="fieldViz" style="margin-top:20px">
+    <div class="viz-title">Field Strength Profile</div>
+    <div id="vizBars"></div>
+  </div>
+  <div class="step-nav">
+    <button class="btn-back" onclick="goStep(0)">← Back</button>
+    <button class="btn-next" onclick="goStep(2)">Continue →</button>
+  </div>
+</div>
 
-        const ATCF_TOOLTIPS = {
-            'A_prime': 'A\' (Identity): Measured via Life Story Interview, self-concept clarity. Low = identity disruption from chronic stress (McAdams 2001).',
-            'T_prime': 'T\' (Material): Measured via cortisol, allostatic load, financial strain. Low = survival mode (Sapolsky 2017).',
-            'C_prime': 'C\' (Future): Measured via time perspective, delay discounting. Low = "tunneling" from scarcity (Mullainathan & Shafir 2013).',
-            'F_prime': 'F\' (Override): Measured via Stroop test, ego depletion. Low = impaired self-control (Baumeister 1998).',
-            'overall': 'Overall ATCF: <0.3 = non-functional, 0.3-0.5 = compromised, >0.5 = functional for complex deliberation.'
-        };
+<!-- ── STEP 2: INTERFERENCE ── -->
+<div class="step-card" id="step2">
+  <div class="step-header">
+    <div class="step-number">Step 3 — Field Interference Analysis</div>
+    <h1 class="step-title">Which fields pull together — and which pull apart?</h1>
+    <p class="step-desc">Identify one pair in constructive interference (they reinforce each other) and one pair in destructive interference (they compete for the same energy, time, or attention).</p>
+  </div>
+  <div class="interference-card">
+    <div class="int-type"><span class="int-badge badge-construct">Constructive</span> These two fields currently support each other</div>
+    <div class="pair-selects">
+      <select id="cField1" class="pair-select"><option value="">Select field…</option></select>
+      <span class="pair-arrow">⇌</span>
+      <select id="cField2" class="pair-select"><option value="">Select field…</option></select>
+    </div>
+    <div class="field-group">
+      <label class="field-label">What sustains this constructive relationship?</label>
+      <input type="text" id="cDescription" placeholder="e.g. My work schedule gives me structure that keeps my school commitments on track…">
+    </div>
+  </div>
+  <div class="interference-card" style="margin-top:14px">
+    <div class="int-type"><span class="int-badge badge-destruct">Destructive</span> These two fields are currently pulling against each other</div>
+    <div class="pair-selects">
+      <select id="dField1" class="pair-select"><option value="">Select field…</option></select>
+      <span class="pair-arrow">⚡</span>
+      <select id="dField2" class="pair-select"><option value="">Select field…</option></select>
+    </div>
+    <div class="field-group">
+      <label class="field-label">What specific demands are in conflict?</label>
+      <input type="text" id="dDescription" placeholder="e.g. My financial field requires evening shifts; my health field needs sleep. Both can't win.">
+    </div>
+    <div class="field-group">
+      <label class="field-label">What would need to change to reduce this interference? Is it within your control?</label>
+      <textarea id="dReduction" rows="2" placeholder="e.g. A different shift schedule would help, but that requires supervisor approval…"></textarea>
+    </div>
+  </div>
+  <div class="step-nav">
+    <button class="btn-back" onclick="goStep(1)">← Back</button>
+    <button class="btn-next" onclick="goStep(3)">Continue →</button>
+  </div>
+</div>
 
-        function toggleHelp() {
-            const panel = document.getElementById('helpPanel');
-            panel.classList.toggle('visible');
-            if (panel.classList.contains('visible')) {
-                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-        }
+<!-- ── STEP 3: SUPPRESSION GAP ── -->
+<div class="step-card" id="step3">
+  <div class="step-header">
+    <div class="step-number">Step 4 — Suppression Gap & Dark Coherence</div>
+    <h1 class="step-title">Measuring what the field permits</h1>
+    <p class="step-desc">Your primary field is your highest-strength domain. Now measure the gap between your potential and your actual contribution — and check for dark coherence indicators.</p>
+  </div>
+  <div style="background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:14px">
+    <div class="field-label">Your primary field (highest strength)</div>
+    <div id="primaryFieldName" style="font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--teal);margin-top:4px">—</div>
+  </div>
+  <div style="background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:14px">
+    <div class="field-label" style="margin-bottom:16px">Potential contribution — what could you give under genuinely supportive conditions?</div>
+    <input type="range" id="potentialSlider" min="1" max="10" value="8" class="strength-slider" oninput="updateGap()">
+    <div class="strength-label"><span>Minimal</span><span id="potentialVal">8</span><span>Full capacity</span></div>
+    <div class="field-label" style="margin-bottom:16px;margin-top:8px">Actual contribution — what does your current field configuration permit?</div>
+    <input type="range" id="actualSlider" min="1" max="10" value="5" class="strength-slider" oninput="updateGap()">
+    <div class="strength-label"><span>Very little</span><span id="actualVal">5</span><span>Full capacity</span></div>
+  </div>
+  <div class="gap-display" id="gapDisplay">
+    <div class="gap-number" id="gapNumber">3</div>
+    <div class="gap-label">Suppression Gap</div>
+    <div class="gap-bar-wrap">
+      <div class="gap-bar-potential" id="gapBarP" style="width:80%"></div>
+      <div class="gap-bar-actual" id="gapBarA" style="width:50%;margin-top:-10px"></div>
+    </div>
+    <div class="gap-legend">
+      <div class="gap-legend-item"><div class="leg-dot" style="background:#fff"></div>Potential</div>
+      <div class="gap-legend-item"><div class="leg-dot" style="background:var(--gold-a)"></div>Actual</div>
+    </div>
+  </div>
+  <div class="field-group">
+    <label class="field-label">Name the gap in your own words</label>
+    <textarea id="gapDescription" rows="2" placeholder="e.g. I could be doing 8/10 quality work in my school field, but between my job and family demands, I'm consistently operating at 5/10…"></textarea>
+  </div>
+  <div style="margin-top:20px;margin-bottom:10px;font-family:'Playfair Display',serif;font-weight:600;font-size:1rem">Dark Coherence Check</div>
+  <p style="font-size:.87rem;color:var(--muted);margin-bottom:12px;font-style:italic">Check any indicators that apply to your primary field:</p>
+  <div class="dc-checks">
+    <label class="dc-item"><input type="checkbox" class="dc-checkbox" id="dc1" onchange="updateDC()"><span class="dc-text">This field takes more from me than it supports — it extracts more energy, attention, and care than it gives back.</span></label>
+    <label class="dc-item"><input type="checkbox" class="dc-checkbox" id="dc2" onchange="updateDC()"><span class="dc-text">Pressure from this field propagates into my health, family, or meaning fields while blocking recovery. Stress routes in; restoration routes out.</span></label>
+    <label class="dc-item"><input type="checkbox" class="dc-checkbox" id="dc3" onchange="updateDC()"><span class="dc-text">The field's formal description of how it functions — what it claims to be — doesn't match what it actually costs me to be part of it.</span></label>
+  </div>
+  <div class="dc-risk low" id="dcRisk"><span class="dc-risk-label">Dark Coherence Risk: Low</span></div>
+  <div class="step-nav">
+    <button class="btn-back" onclick="goStep(2)">← Back</button>
+    <button class="btn-next" onclick="goStep(4)">Continue →</button>
+  </div>
+</div>
 
-        async function loadData() {
-            const [scenariosResp, frameworksResp] = await Promise.all([
-                fetch('/api/scenarios'),
-                fetch('/api/frameworks')
-            ]);
-            scenarios = await scenariosResp.json();
-            frameworks = await frameworksResp.json();
-            renderScenarios();
-            renderFrameworks();
-        }
+<!-- ── STEP 4: BIOBOND + BRIDGE ── -->
+<div class="step-card" id="step4">
+  <div class="step-header">
+    <div class="step-number">Step 5 — BioBond, Living Threads, and Public Reasoning</div>
+    <h1 class="step-title">What sustains you — and how you share this</h1>
+    <p class="step-desc">Identify the relational sources that restore your moral agency and the commitments that carry meaning across your fields. Then translate your private analysis into a public frame.</p>
+  </div>
+  <div style="background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:14px">
+    <div style="font-family:'Playfair Display',serif;font-weight:600;margin-bottom:14px">BioBond Sources</div>
+    <p style="font-size:.87rem;color:var(--muted);margin-bottom:12px;font-style:italic">Name 2-3 people or communities that genuinely restore your capacity to show up ethically under pressure.</p>
+    <div class="field-group"><label class="field-label">BioBond Source 1</label><input type="text" id="bio1" placeholder="e.g. My sister — she helps me see my situation clearly without judgment…"></div>
+    <div class="field-group"><label class="field-label">BioBond Source 2</label><input type="text" id="bio2" placeholder="e.g. My study group — they understand what this semester is actually like…"></div>
+    <div class="field-group"><label class="field-label">BioBond Source 3 (optional)</label><input type="text" id="bio3" placeholder="e.g. …"></div>
+    <div class="field-group" style="margin-top:20px">
+      <div style="font-family:'Playfair Display',serif;font-weight:600;margin-bottom:10px">Living Thread</div>
+      <label class="field-label">One commitment, project, or relationship that carries meaning across your field boundaries</label>
+      <input type="text" id="livingThread" placeholder="e.g. My commitment to finishing this degree — it holds meaning even when the semester is brutal…">
+    </div>
+  </div>
+  <div style="background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:20px">
+    <div style="font-family:'Playfair Display',serif;font-weight:600;margin-bottom:6px">Public Reasoning Bridge</div>
+    <p style="font-size:.87rem;color:var(--muted);margin-bottom:16px;font-style:italic">Translate your private field analysis into a frame suitable for shared ethical discussion — without requiring you to disclose personal details.</p>
+    <div class="field-group">
+      <div class="bridge-prompt">"My field analysis helped me notice that…"</div>
+      <textarea class="bridge-input" id="bridge1" rows="2" placeholder="(name a structural feature, not personal details)"></textarea>
+    </div>
+    <div class="field-group">
+      <div class="bridge-prompt">"For public ethical discussion, I would frame this as…"</div>
+      <textarea class="bridge-input" id="bridge2" rows="2" placeholder="(name the general ethical issue the structural feature raises)"></textarea>
+    </div>
+    <div class="field-group">
+      <div class="bridge-prompt">"This framing matters because…"</div>
+      <textarea class="bridge-input" id="bridge3" rows="2" placeholder="(explain why this is not only your situation but relevant to others in similar fields)"></textarea>
+    </div>
+  </div>
+  <div class="step-nav">
+    <button class="btn-back" onclick="goStep(3)">← Back</button>
+    <button class="btn-next" onclick="goStep(5)">Continue →</button>
+  </div>
+</div>
 
-        function renderScenarios() {
-            const grid = document.getElementById('scenarioGrid');
-            grid.innerHTML = scenarios.map((s, idx) => `
-                <div class="scenario-card" onclick="selectScenario(${idx})">
-                    <h3>${s.name}</h3>
-                    <p>${s.context.substring(0, 100)}... <strong style="color:#3498db;">Click to read more</strong></p>
-                </div>
-            `).join('');
-        }
+<!-- ── STEP 5: AI REFLECTION ── -->
+<div class="step-card" id="step5">
+  <div class="step-header">
+    <div class="step-number">Step 6 — Field Reflection</div>
+    <h1 class="step-title">Your twin conversation</h1>
+    <p class="step-desc">Generate a personalized field analysis based on your specific data. The reflection applies Chapter 3's concepts to your situation — not to a generic student. You can ask a follow-up question afterward.</p>
+  </div>
+  <div style="background:var(--teal-l);border-radius:var(--r);padding:18px;margin-bottom:16px;font-size:.88rem;color:var(--teal-d)">
+    <strong style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase">How this works</strong><br>
+    Your field data — strengths, attractor states, interference pairs, suppression gap, and dark coherence indicators — will be sent to an AI coach. The response is generated specifically from your data. It is not stored.
+  </div>
+  <button class="reflection-trigger" id="reflectBtn" onclick="generateReflection()">
+    <span class="spinner" id="reflectSpinner"></span>
+    <span id="reflectBtnText">✦ Generate My Field Reflection</span>
+  </button>
+  <div class="reflection-box" id="reflectionBox">
+    <div class="reflection-tag">Field Reflection — Chapter 3</div>
+    <div class="reflection-text" id="reflectionText"></div>
+    <div class="followup-wrap">
+      <div class="followup-label">Ask a follow-up question</div>
+      <div class="followup-row">
+        <input type="text" class="followup-input" id="followupInput" placeholder="e.g. What does the dark coherence pattern suggest about whether I should stay in this role?">
+        <button class="followup-send" onclick="sendFollowup()">Send →</button>
+      </div>
+      <div class="followup-response" id="followupResponse"></div>
+    </div>
+  </div>
+  <div class="step-nav">
+    <button class="btn-back" onclick="goStep(4)">← Back</button>
+    <button class="btn-next" onclick="goStep(6)">Continue →</button>
+  </div>
+</div>
 
-        function renderFrameworks() {
-            const grid = document.getElementById('frameworkGrid');
-            grid.innerHTML = frameworks.map(f => `
-                <div class="framework-card" onclick="toggleFramework('${f.id}')">
-                    <h4>${f.name}</h4>
-                    <p>${f.description}</p>
-                </div>
-            `).join('');
-        }
+<!-- ── STEP 6: EXPORT ── -->
+<div class="step-card" id="step6">
+  <div class="step-header">
+    <div class="step-number">Step 7 — Export Your Work</div>
+    <h1 class="step-title">Your Chapter 3 work product</h1>
+    <p class="step-desc">Your Field Scan analysis is complete. Export it for Canvas submission or print the full worksheet for your Personal Ethics Journal.</p>
+  </div>
+  <div class="completion-msg">
+    <h2>Field Scan Complete</h2>
+    <p>You have mapped your field configuration, identified interference patterns, measured your suppression gap, and translated your analysis for public ethical discussion.</p>
+  </div>
+  <div class="export-grid">
+    <div class="export-card" onclick="exportCanvas()">
+      <div class="export-icon">📋</div>
+      <div class="export-title">Export for Canvas</div>
+      <div class="export-desc">Downloads a formatted text file to submit as your Chapter 3 work product</div>
+    </div>
+    <div class="export-card" onclick="window.print()">
+      <div class="export-icon">🖨️</div>
+      <div class="export-title">Print / Track 2</div>
+      <div class="export-desc">Prints the full worksheet with your responses for the Personal Ethics Journal</div>
+    </div>
+  </div>
+  <div style="margin-top:24px;padding:16px;background:#fff;border:1px solid var(--border);border-radius:var(--r)">
+    <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Navigator Note</div>
+    <p style="font-size:.88rem;color:var(--slate)">This Field Scan is Chapter 3 of your Development Arc. Import your suppression gap number and primary field name into The Navigator to add this to your semester record. Your Development Arc View in Chapter 11 will use this data.</p>
+  </div>
+  <div style="margin-top:14px;text-align:center">
+    <button onclick="goStep(0);resetAll()" style="background:transparent;border:none;color:var(--muted);font-family:'DM Mono',monospace;font-size:.78rem;cursor:pointer;text-decoration:underline">Start a new Field Scan</button>
+  </div>
+</div>
 
-        function selectScenario(idx) {
-            selectedScenario = idx;
-            const scenario = scenarios[idx];
-            
-            document.querySelectorAll('.scenario-card').forEach((el, i) => {
-                el.classList.toggle('selected', i === idx);
-            });
-            
-            const overall = Math.pow(
-                scenario.atcf.A_prime * 
-                scenario.atcf.T_prime * 
-                scenario.atcf.C_prime * 
-                scenario.atcf.F_prime, 
-                0.25
-            ).toFixed(2);
-            
-            const detailDiv = document.getElementById('scenarioDetail');
-            detailDiv.className = 'scenario-detail visible';
-            detailDiv.innerHTML = `
-                <h3>📋 ${scenario.name}</h3>
-                
-                <div class="context">
-                    <strong>Scenario Context:</strong><br>
-                    ${scenario.context}
-                </div>
-                
-                <div class="question">
-                    <strong>❓ Ethical Question:</strong><br>
-                    ${scenario.question}
-                </div>
-                
-                <div>
-                    <strong style="margin-bottom: 10px; display: block;">ATCF State (Hover for measurement info):</strong>
-                    <div class="atcf-display">
-                        <div class="atcf-item tooltip">
-                            <div class="label">A' (Identity)</div>
-                            <div class="value">${scenario.atcf.A_prime.toFixed(2)}</div>
-                            <span class="tooltiptext">${ATCF_TOOLTIPS.A_prime}</span>
-                        </div>
-                        <div class="atcf-item tooltip">
-                            <div class="label">T' (Material)</div>
-                            <div class="value">${scenario.atcf.T_prime.toFixed(2)}</div>
-                            <span class="tooltiptext">${ATCF_TOOLTIPS.T_prime}</span>
-                        </div>
-                        <div class="atcf-item tooltip">
-                            <div class="label">C' (Future)</div>
-                            <div class="value">${scenario.atcf.C_prime.toFixed(2)}</div>
-                            <span class="tooltiptext">${ATCF_TOOLTIPS.C_prime}</span>
-                        </div>
-                        <div class="atcf-item tooltip">
-                            <div class="label">F' (Override)</div>
-                            <div class="value">${scenario.atcf.F_prime.toFixed(2)}</div>
-                            <span class="tooltiptext">${ATCF_TOOLTIPS.F_prime}</span>
-                        </div>
-                        <div class="atcf-item tooltip" style="background:#e8f5e9;">
-                            <div class="label">Overall ATCF</div>
-                            <div class="value" style="color:#27ae60;">${overall}</div>
-                            <span class="tooltiptext">${ATCF_TOOLTIPS.overall}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            detailDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            checkCanRun();
-        }
+</div><!-- /container -->
 
-        function toggleFramework(id) {
-            if (selectedFrameworks.has(id)) {
-                selectedFrameworks.delete(id);
-            } else {
-                selectedFrameworks.add(id);
-            }
-            
-            document.querySelectorAll('.framework-card').forEach(el => {
-                const fwName = el.querySelector('h4').textContent;
-                const fw = frameworks.find(f => fwName.includes(f.name));
-                if (fw) el.classList.toggle('selected', selectedFrameworks.has(fw.id));
-            });
-            checkCanRun();
-        }
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+const FIELDS = [
+  {id:'work',   name:'Work / School Field',     hint:'e.g. exhausted compliance, mechanical performance, urgent purpose…'},
+  {id:'family', name:'Family Field',             hint:'e.g. caregiver exhaustion, warm reciprocity, strained loyalty…'},
+  {id:'fin',    name:'Financial Field',          hint:'e.g. scarcity thinking, short-term survival, cautious stability…'},
+  {id:'health', name:'Health Field',             hint:'e.g. chronic depletion, fragile recovery, managed stability…'},
+  {id:'meaning',name:'Meaning / Purpose Field',  hint:'e.g. active vocation, fading purpose, searching…'},
+  {id:'civic',  name:'Civic / Community Field',  hint:'e.g. isolated, peripheral engagement, active belonging…'},
+];
+let state = {
+  prf1:'', prf2:'', step:0,
+  strengths:{work:5,family:5,fin:5,health:5,meaning:5,civic:5},
+  attractors:{work:'',family:'',fin:'',health:'',meaning:'',civic:''},
+  reflectionText:'', conversationHistory:[]
+};
+let track2Mode = false;
 
-        function checkCanRun() {
-            const btn = document.getElementById('runSimulation');
-            btn.disabled = !(selectedScenario !== null && selectedFrameworks.size >= 2);
-        }
+// ── INIT ──────────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  buildFieldCards();
+  populateInterferenceSelects();
+  updateGap();
+  updateDC();
+});
 
-        ['a', 't', 'c', 'f'].forEach(key => {
-            const slider = document.getElementById(`${key}-slider`);
-            const valueSpan = document.getElementById(`${key}-value`);
-            slider.addEventListener('input', (e) => {
-                valueSpan.textContent = (e.target.value / 100).toFixed(2);
-            });
-        });
+function buildFieldCards() {
+  const grid = document.getElementById('fieldsGrid');
+  grid.innerHTML = '';
+  FIELDS.forEach(f => {
+    grid.innerHTML += `
+    <div class="field-card">
+      <div class="field-top">
+        <span class="field-name">${f.name}</span>
+        <span class="field-strength-num" id="${f.id}Num">5</span>
+      </div>
+      <div class="strength-label"><span>Low</span><span></span><span>High</span></div>
+      <input type="range" class="strength-slider" id="${f.id}Slider" min="1" max="10" value="5"
+        oninput="updateFieldStrength('${f.id}',this.value)" style="--pct:40%">
+      <div class="attractor-wrap">
+        <input type="text" class="attractor-input" id="${f.id}Attractor"
+          placeholder="${f.hint}" oninput="state.attractors['${f.id}']=this.value">
+        <div class="attractor-hint">Attractor state: where is this field pulling you if unexamined?</div>
+      </div>
+    </div>`;
+  });
+  updateViz();
+}
 
-        document.getElementById('runSimulation').addEventListener('click', async () => {
-            const useScenarioATCF = document.getElementById('use-scenario-atcf').checked;
-            let atcfOverride = null;
-            
-            if (!useScenarioATCF) {
-                atcfOverride = {
-                    A_prime: document.getElementById('a-slider').value / 100,
-                    T_prime: document.getElementById('t-slider').value / 100,
-                    C_prime: document.getElementById('c-slider').value / 100,
-                    F_prime: document.getElementById('f-slider').value / 100
-                };
-            }
+function updateFieldStrength(id, val) {
+  state.strengths[id] = +val;
+  document.getElementById(id+'Num').textContent = val;
+  const slider = document.getElementById(id+'Slider');
+  slider.style.setProperty('--pct', ((val-1)/9*100)+'%');
+  updateViz();
+  updatePrimaryField();
+}
 
-            const response = await fetch('/api/simulate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    scenario_id: selectedScenario,
-                    frameworks: Array.from(selectedFrameworks),
-                    atcf_override: atcfOverride
-                })
-            });
+function updateViz() {
+  const bars = document.getElementById('vizBars');
+  bars.innerHTML = '';
+  FIELDS.forEach(f => {
+    const pct = (state.strengths[f.id]-1)/9*100;
+    bars.innerHTML += `
+    <div class="viz-row">
+      <span class="viz-label">${f.name.split(' Field')[0].split(' / ')[0]}</span>
+      <div class="viz-bar-wrap"><div class="viz-bar" style="width:${pct}%"></div></div>
+      <span class="viz-num">${state.strengths[f.id]}</span>
+    </div>`;
+  });
+}
 
-            const data = await response.json();
-            displayResults(data);
-        });
+function populateInterferenceSelects() {
+  ['cField1','cField2','dField1','dField2'].forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '<option value="">Select field…</option>';
+    FIELDS.forEach(f => { sel.innerHTML += `<option value="${f.id}">${f.name}</option>`; });
+  });
+}
 
-        function displayResults(data) {
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.className = 'section visible';
-            
-            let html = `
-                <h2>Simulation Results</h2>
-                <div class="alert info">
-                    <strong>Scenario:</strong> ${data.scenario}<br>
-                    <strong>Question:</strong> ${data.question}<br>
-                    <strong>ATCF Overall:</strong> ${data.atcf_overall.toFixed(2)}
-                </div>
-            `;
+function updatePrimaryField() {
+  let max = 0, primary = 'work';
+  FIELDS.forEach(f => { if(state.strengths[f.id] > max){max=state.strengths[f.id];primary=f.id;} });
+  const name = FIELDS.find(f=>f.id===primary)?.name || '';
+  document.getElementById('primaryFieldName').textContent = `${name} (strength: ${max}/10)`;
+  state.primaryField = primary;
+}
 
-            data.results.forEach(result => {
-                const cssClass = result.breakdown ? 'breakdown' : 'success';
-                html += `
-                    <div class="result-card ${cssClass}">
-                        <h3>${result.framework}</h3>
-                        ${result.action ? `<div><strong>Action:</strong> ${result.action}</div>` : ''}
-                        <div class="reasoning">${result.reasoning}</div>
-                        <div><strong>Coherence:</strong> ${(result.coherence * 100).toFixed(0)}%</div>
-                        ${result.breakdown ? '<div style="color:#e74c3c; font-weight:bold;">⚠️ Framework Breakdown</div>' : '<div style="color:#27ae60; font-weight:bold;">✓ Assumptions Hold</div>'}
-                    </div>
-                `;
-            });
+function updateGap() {
+  const pot = +document.getElementById('potentialSlider').value;
+  const act = +document.getElementById('actualSlider').value;
+  document.getElementById('potentialVal').textContent = pot;
+  document.getElementById('actualVal').textContent = act;
+  const gap = Math.max(0, pot - act);
+  document.getElementById('gapNumber').textContent = gap;
+  document.getElementById('gapBarP').style.width = (pot/10*100)+'%';
+  document.getElementById('gapBarA').style.width = (act/10*100)+'%';
+  state.potential = pot; state.actual = act; state.gap = gap;
+}
 
-            resultsDiv.innerHTML = html;
-            resultsDiv.scrollIntoView({ behavior: 'smooth' });
-        }
+function updateDC() {
+  const c = [1,2,3].map(n => document.getElementById('dc'+n)?.checked ? 1 : 0);
+  const count = c.reduce((a,b)=>a+b,0);
+  const el = document.getElementById('dcRisk');
+  if(count === 0){ el.className='dc-risk low'; el.innerHTML='<span class="dc-risk-label">Dark Coherence Risk: Low</span>'; }
+  else if(count === 1){ el.className='dc-risk mod'; el.innerHTML='<span class="dc-risk-label">Dark Coherence Risk: Moderate — One indicator present. Worth watching.</span>'; }
+  else { el.className='dc-risk high'; el.innerHTML='<span class="dc-risk-label">Dark Coherence Risk: High — Multiple indicators. This field may be depleting your moral agency.</span>'; }
+  state.dcCount = count;
+}
 
-        loadData();
-    </script>
+// ── PRF SELECTION ──────────────────────────────────────────────────────────
+function selectPRF(el, which, value) {
+  const gridId = which==='prf1' ? 'prf1Grid' : 'prf2Grid';
+  document.getElementById(gridId).querySelectorAll('.prf-pill').forEach(p=>p.classList.remove('selected'));
+  el.classList.add('selected');
+  state[which] = value;
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────
+function goStep(n) {
+  document.querySelectorAll('.step-card').forEach(c=>c.classList.remove('active'));
+  document.getElementById('step'+n).classList.add('active');
+  state.step = n;
+  const pct = Math.round(((n+1)/7)*100);
+  document.getElementById('progressFill').style.width = pct+'%';
+  document.getElementById('stepBadge').textContent = `Step ${n+1} of 7`;
+  document.querySelectorAll('.step-dot').forEach((d,i)=>{
+    d.className = 'step-dot' + (i<n?' done':i===n?' active':'');
+  });
+  if(n===3) updatePrimaryField();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── AI REFLECTION ─────────────────────────────────────────────────────────
+function buildPromptData() {
+  const name = document.getElementById('studentName').value || 'the student';
+  const situation = document.getElementById('situationText').value || 'Not provided';
+  const attractors = FIELDS.map(f => {
+    const att = document.getElementById(f.id+'Attractor')?.value || 'not named';
+    return `  - ${f.name}: strength ${state.strengths[f.id]}/10, attractor: "${att}"`;
+  }).join('\n');
+  const pf = FIELDS.find(f=>f.id===state.primaryField)?.name || 'not identified';
+  const cF1 = document.getElementById('cField1').value;
+  const cF2 = document.getElementById('cField2').value;
+  const dF1 = document.getElementById('dField1').value;
+  const dF2 = document.getElementById('dField2').value;
+  const cN1 = FIELDS.find(f=>f.id===cF1)?.name || cF1;
+  const cN2 = FIELDS.find(f=>f.id===cF2)?.name || cF2;
+  const dN1 = FIELDS.find(f=>f.id===dF1)?.name || dF1;
+  const dN2 = FIELDS.find(f=>f.id===dF2)?.name || dF2;
+  const dcChecked = [
+    document.getElementById('dc1')?.checked && 'takes more than it supports',
+    document.getElementById('dc2')?.checked && 'stress propagates in, recovery blocked',
+    document.getElementById('dc3')?.checked && "formal description doesn't match actual cost"
+  ].filter(Boolean);
+
+  return `Student: ${name}
+PRF: Primary foundation = ${state.prf1||'not provided'}, Secondary = ${state.prf2||'not provided'}
+Current situation: ${situation}
+
+Life Field Configuration:
+${attractors}
+
+Primary Field (highest strength): ${pf}
+
+Interference:
+  Constructive pair: ${cN1} ↔ ${cN2}
+  What sustains it: "${document.getElementById('cDescription')?.value||'not provided'}"
+  Destructive pair: ${dN1} ↔ ${dN2}
+  Competing demands: "${document.getElementById('dDescription')?.value||'not provided'}"
+  What would reduce it: "${document.getElementById('dReduction')?.value||'not provided'}"
+
+Suppression Gap:
+  Potential: ${state.potential||8}/10, Actual: ${state.actual||5}/10, Gap: ${state.gap||3}
+  Student's description: "${document.getElementById('gapDescription')?.value||'not described'}"
+
+Dark Coherence Indicators present: ${dcChecked.length === 0 ? 'None' : dcChecked.join('; ')}
+
+BioBond Sources: ${[document.getElementById('bio1')?.value, document.getElementById('bio2')?.value, document.getElementById('bio3')?.value].filter(Boolean).join('; ') || 'not identified'}
+Living Thread: ${document.getElementById('livingThread')?.value||'not identified'}`;
+}
+
+async function generateReflection() {
+  const btn = document.getElementById('reflectBtn');
+  const spinner = document.getElementById('reflectSpinner');
+  const btnText = document.getElementById('reflectBtnText');
+  btn.disabled = true; btn.classList.add('loading');
+  spinner.style.display = 'block'; btnText.textContent = 'Generating…';
+
+  const promptData = buildPromptData();
+  const systemPrompt = `You are a thoughtful field analysis coach working with a community college student using the Ethics Beyond Boundaries course (Chapter 3: The Fields You're In). 
+
+Your task: provide a warm, specific, and intellectually substantive reflection on their field scan data. Use the chapter's analytical vocabulary: life-field, field strength, attractor state, constructive/destructive interference, suppression gap, dark coherence, and BioBond sources.
+
+Be genuinely specific — reference their actual field names, attractor states, suppression gap number, and interference patterns. Do NOT give generic advice. The student has provided real data; use it.
+
+Tone: warm, clear, intellectually serious. Not therapeutic, not lecturing. Like a thoughtful colleague who has read their work carefully.
+
+Length: 220-270 words.
+
+End with one specific follow-up question that would deepen their field analysis — not a general question, but one directly tied to something in their data that seems worth examining further.`;
+
+  state.conversationHistory = [{ role:'user', content: promptData }];
+
+  try {
+    const res = await fetch('https://ucp-backend-4dig.onrender.com/api/claude', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        mode:'coach',
+        systemPrompt,
+        userMessage: promptData
+      })
+    });
+    const data = await res.json();
+    const text = data.response || data.text || 'Unable to generate reflection. Please try again.';
+    state.reflectionText = text;
+    state.conversationHistory.push({role:'assistant', content: text});
+    document.getElementById('reflectionText').textContent = text;
+    document.getElementById('reflectionBox').classList.add('visible');
+  } catch(e) {
+    document.getElementById('reflectionText').textContent = 'Connection error. Please check your connection and try again.';
+    document.getElementById('reflectionBox').classList.add('visible');
+  }
+  btn.disabled = false; btn.classList.remove('loading');
+  spinner.style.display = 'none'; btnText.textContent = '✦ Regenerate Reflection';
+}
+
+async function sendFollowup() {
+  const input = document.getElementById('followupInput');
+  const question = input.value.trim();
+  if(!question) return;
+  const responseEl = document.getElementById('followupResponse');
+  responseEl.style.display = 'block';
+  responseEl.textContent = 'Thinking…';
+
+  state.conversationHistory.push({role:'user', content: question});
+  const sysPrompt = `You are the same field analysis coach. The student is asking a follow-up question about their Chapter 3 Field Scan analysis. Reference the field data from earlier in your response. Be specific, brief (100-140 words), and end with no further question unless truly essential.`;
+
+  try {
+    const res = await fetch('https://ucp-backend-4dig.onrender.com/api/claude', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        mode:'sage',
+        systemPrompt: sysPrompt,
+        userMessage: `Previous context:\n${state.conversationHistory.slice(0,-1).map(m=>m.role+': '+m.content).join('\n\n')}\n\nFollow-up question: ${question}`
+      })
+    });
+    const data = await res.json();
+    const text = data.response || data.text || 'Unable to respond. Please try again.';
+    state.conversationHistory.push({role:'assistant', content: text});
+    responseEl.textContent = text;
+  } catch(e) {
+    responseEl.textContent = 'Connection error. Please try again.';
+  }
+  input.value = '';
+}
+
+// ── EXPORT ────────────────────────────────────────────────────────────────
+function exportCanvas() {
+  const name = document.getElementById('studentName').value || 'Student';
+  const date = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  let txt = `ETHICS BEYOND BOUNDARIES — Chapter 3 Field Scan
+Student: ${name}    Date: ${date}
+${'─'.repeat(60)}
+
+SECTION 1 — CONTEXT
+PRF Dominant Foundation: ${state.prf1 || 'Not provided'}
+PRF Secondary Foundation: ${state.prf2 || 'Not provided'}
+Current Situation: ${document.getElementById('situationText').value || 'Not provided'}
+
+${'─'.repeat(60)}
+SECTION 2 — LIFE FIELD CONFIGURATION
+
+`;
+  FIELDS.forEach(f => {
+    const att = document.getElementById(f.id+'Attractor')?.value || '(not named)';
+    txt += `${f.name}\n  Strength: ${state.strengths[f.id]}/10\n  Attractor State: ${att}\n\n`;
+  });
+
+  const cF1 = FIELDS.find(f=>f.id===document.getElementById('cField1').value)?.name || '—';
+  const cF2 = FIELDS.find(f=>f.id===document.getElementById('cField2').value)?.name || '—';
+  const dF1 = FIELDS.find(f=>f.id===document.getElementById('dField1').value)?.name || '—';
+  const dF2 = FIELDS.find(f=>f.id===document.getElementById('dField2').value)?.name || '—';
+
+  txt += `${'─'.repeat(60)}
+SECTION 3 — FIELD INTERFERENCE
+
+Constructive Pair: ${cF1} ↔ ${cF2}
+What sustains it: ${document.getElementById('cDescription').value || '—'}
+
+Destructive Pair: ${dF1} ↔ ${dF2}
+Competing demands: ${document.getElementById('dDescription').value || '—'}
+What would reduce it: ${document.getElementById('dReduction').value || '—'}
+
+${'─'.repeat(60)}
+SECTION 4 — SUPPRESSION GAP & DARK COHERENCE
+
+Primary Field: ${FIELDS.find(f=>f.id===state.primaryField)?.name || '—'}
+Potential Contribution: ${state.potential}/10
+Actual Contribution: ${state.actual}/10
+Suppression Gap: ${state.gap}
+Student Description: ${document.getElementById('gapDescription').value || '—'}
+
+Dark Coherence Indicators: ${state.dcCount === 0 ? 'None checked' : state.dcCount + ' indicator(s) present'}
+Risk Level: ${state.dcCount===0?'Low':state.dcCount===1?'Moderate':'High'}
+
+${'─'.repeat(60)}
+SECTION 5 — BIOBOND, LIVING THREADS, AND PUBLIC REASONING
+
+BioBond Sources:
+  1. ${document.getElementById('bio1').value || '—'}
+  2. ${document.getElementById('bio2').value || '—'}
+  3. ${document.getElementById('bio3').value || '—'}
+
+Living Thread: ${document.getElementById('livingThread').value || '—'}
+
+Public Reasoning Bridge:
+  "My field analysis helped me notice that…"
+  ${document.getElementById('bridge1').value || '—'}
+
+  "For public ethical discussion, I would frame this as…"
+  ${document.getElementById('bridge2').value || '—'}
+
+  "This framing matters because…"
+  ${document.getElementById('bridge3').value || '—'}
+
+${'─'.repeat(60)}
+SECTION 6 — FIELD REFLECTION (AI Coach)
+
+${state.reflectionText || '(Reflection not generated — complete Step 6 to include this)'}
+
+${'─'.repeat(60)}
+Ethics Beyond Boundaries · Chapter 3 · Saint Petersburg College
+`;
+  const blob = new Blob([txt], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `EBB_Ch3_FieldScan_${name.replace(/\s+/g,'_')}_${date.replace(/\s/g,'').replace(/,/g,'')}.txt`;
+  a.click();
+}
+
+// ── TRACK 2 / PRINT ───────────────────────────────────────────────────────
+function toggleTrack2() {
+  track2Mode = !track2Mode;
+  document.getElementById('track2Btn').classList.toggle('active', track2Mode);
+  if(track2Mode) window.print();
+}
+
+function resetAll() {
+  state = {prf1:'', prf2:'', step:0,
+    strengths:{work:5,family:5,fin:5,health:5,meaning:5,civic:5},
+    attractors:{work:'',family:'',fin:'',health:'',meaning:'',civic:''},
+    reflectionText:'', conversationHistory:[]};
+  document.querySelectorAll('input[type=text],textarea').forEach(el=>el.value='');
+  document.querySelectorAll('input[type=checkbox]').forEach(el=>el.checked=false);
+  document.querySelectorAll('.prf-pill').forEach(p=>p.classList.remove('selected'));
+  document.getElementById('reflectionBox').classList.remove('visible');
+  document.getElementById('followupResponse').style.display='none';
+  buildFieldCards();
+  updateGap(); updateDC();
+}
+</script>
 </body>
 </html>
